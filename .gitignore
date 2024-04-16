@@ -70,3 +70,8 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+Tutorials/Geometric_Primitives/ProjectSettings/ProjectVersion.txt
+Tutorials/Geometric_Primitives/ProjectSettings/Packages/com.unity.testtools.codecoverage/Settings.json
+Tutorials/Geometric_Primitives/ProjectSettings/boot.config
+Tutorials/Geometric_Primitives/Packages/packages-lock.json
+Tutorials/Geometric_Primitives/ProjectSettings/ProjectVersion.txt
