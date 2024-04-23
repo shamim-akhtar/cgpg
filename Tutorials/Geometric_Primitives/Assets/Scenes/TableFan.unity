@@ -273,7 +273,7 @@ GameObject:
   - component: {fileID: 563591516}
   - component: {fileID: 563591515}
   m_Layer: 0
-  m_Name: Cylinder
+  m_Name: Stand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -555,7 +555,7 @@ GameObject:
   - component: {fileID: 1096503565}
   - component: {fileID: 1096503564}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: Base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
