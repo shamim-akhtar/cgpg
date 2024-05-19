@@ -11,8 +11,7 @@ namespace Week05
     {
         private static void TestMat3()
         {
-            Mat4 mat1 = new Mat4();
-            Console.Write(mat1.ToString());
+            // Use this function to test your matrix implementation.
         }
 
         public static void Update(
@@ -20,20 +19,6 @@ namespace Week05
             FrameEventArgs e, 
             KeyboardState input)
         {
-            if (input.IsKeyDown(Keys.S))
-            {
-                Mat4 scale = new Mat4();
-                scale.MakeScale(2.0f, 1.0f, 1.0f);
-                Console.Write(scale.ToString());
-                renderer.SetMatrix(scale);
-            }
-            if (input.IsKeyDown(Keys.T))
-            {
-                Mat4 trans = new Mat4();
-                trans.MakeTranslate(0.5f, 0.0f, 0.0f);
-                Console.Write(trans.ToString());
-                renderer.SetMatrix(trans);
-            }
         }
 
         private static void Main()
@@ -69,11 +54,6 @@ namespace Week05
             //Set the vertex array to the renderer.
             renderer.SetVertexArray(vertices);
             renderer.SetIndexArray(indices);
-
-            Mat4 trans = new Mat4();
-            trans.MakeTranslate(0.5f, 0.0f, 0.0f);
-            Console.Write(trans.ToString());
-            renderer.SetMatrix(trans);
 
             renderer.Run();
             

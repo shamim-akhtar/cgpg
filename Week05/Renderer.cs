@@ -80,10 +80,6 @@ namespace CGPG
 
         public void SetMatrix(Mat4 m)
         {
-            //transform.Row0 = new Vector4(m.matrix[0, 0], m.matrix[0, 1], m.matrix[0, 2], m.matrix[0, 3]);
-            //transform.Row1 = new Vector4(m.matrix[1, 0], m.matrix[1, 1], m.matrix[1, 2], m.matrix[1, 3]);
-            //transform.Row2 = new Vector4(m.matrix[2, 0], m.matrix[2, 1], m.matrix[2, 2], m.matrix[2, 3]);
-            //transform.Row3 = new Vector4(m.matrix[3, 0], m.matrix[3, 1], m.matrix[3, 2], m.matrix[3, 3]);
             transform.M11 = m.matrix[0, 0];
             transform.M12 = m.matrix[0, 1];
             transform.M13 = m.matrix[0, 2];
