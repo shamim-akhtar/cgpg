@@ -7,8 +7,16 @@ namespace Week05
 {
     public static class Program
     {
+        private static void TestMat3()
+        {
+            Mat4 mat1 = new Mat4();
+            Console.Write(mat1.ToString());
+        }
         private static void Main()
         {
+            TestMat3();
+            return;
+
             var nativeWindowSettings = new NativeWindowSettings()
             {
                 ClientSize = new Vector2i(800, 800),
