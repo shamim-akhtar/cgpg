@@ -2,6 +2,7 @@
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Windowing.Desktop;
+using OpenTK.Mathematics;
 
 namespace CGPG
 {
@@ -31,6 +32,7 @@ namespace CGPG
         private Texture _texture;
 
         //private Texture _texture2;
+        Matrix4 transform = Matrix4.Identity;
 
         public Renderer(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
             : base(gameWindowSettings, nativeWindowSettings)
@@ -76,6 +78,33 @@ namespace CGPG
             _shader.SetInt("texture0", 0);
         }
 
+        public void SetMatrix(Mat4 m)
+        {
+            //transform.Row0 = new Vector4(m.matrix[0, 0], m.matrix[0, 1], m.matrix[0, 2], m.matrix[0, 3]);
+            //transform.Row1 = new Vector4(m.matrix[1, 0], m.matrix[1, 1], m.matrix[1, 2], m.matrix[1, 3]);
+            //transform.Row2 = new Vector4(m.matrix[2, 0], m.matrix[2, 1], m.matrix[2, 2], m.matrix[2, 3]);
+            //transform.Row3 = new Vector4(m.matrix[3, 0], m.matrix[3, 1], m.matrix[3, 2], m.matrix[3, 3]);
+            transform.M11 = m.matrix[0, 0];
+            transform.M12 = m.matrix[0, 1];
+            transform.M13 = m.matrix[0, 2];
+            transform.M14 = m.matrix[0, 3];
+
+            transform.M21 = m.matrix[1, 0];
+            transform.M22 = m.matrix[1, 1];
+            transform.M23 = m.matrix[1, 2];
+            transform.M24 = m.matrix[1, 3];
+
+            transform.M31 = m.matrix[2, 0];
+            transform.M32 = m.matrix[2, 1];
+            transform.M33 = m.matrix[2, 2];
+            transform.M34 = m.matrix[2, 3];
+
+            transform.M41 = m.matrix[3, 0];
+            transform.M42 = m.matrix[3, 1];
+            transform.M43 = m.matrix[3, 2];
+            transform.M44 = m.matrix[3, 3];
+        }
+
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             base.OnRenderFrame(e);
@@ -90,19 +119,26 @@ namespace CGPG
             GL.BindVertexArray(_vertexArrayObject);
 
             _texture.Use(TextureUnit.Texture0);
-            //_texture2.Use(TextureUnit.Texture1);
             _shader.Use();
+
+            // Create the transformation matrix.
+            _shader.SetMatrix4("transform", transform);
 
             GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
 
             SwapBuffers();
         }
 
+        public delegate void DelegateOnUpdate(Renderer ren, FrameEventArgs e, KeyboardState keyboard);
+        public DelegateOnUpdate? OnUpdate = null;
+
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             base.OnUpdateFrame(e);
 
             var input = KeyboardState;
+
+            OnUpdate?.Invoke(this, e, input);
 
             if (input.IsKeyDown(Keys.Escape))
             {
