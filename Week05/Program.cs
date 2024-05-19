@@ -11,8 +11,6 @@ namespace Week05
     {
         private static void TestMat3()
         {
-            Mat4 mat1 = new Mat4();
-            Console.Write(mat1.ToString());
         }
 
         public static void Update(
@@ -70,10 +68,12 @@ namespace Week05
             renderer.SetVertexArray(vertices);
             renderer.SetIndexArray(indices);
 
-            Mat4 trans = new Mat4();
-            trans.MakeTranslate(0.5f, 0.0f, 0.0f);
-            Console.Write(trans.ToString());
-            renderer.SetMatrix(trans);
+            //----- Test out the matrix scale -------//
+            Mat4 mymat_scale = new Mat4();
+            mymat_scale.MakeScale(3.0f, 1.0f, 1.0f);
+            Console.WriteLine("mymat_scale");
+            Console.Write(mymat_scale.ToString());
+            renderer.SetMatrix(mymat_scale);
 
             renderer.Run();
             

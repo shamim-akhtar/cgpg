@@ -37,7 +37,7 @@ namespace CGPG
                 for (int j = 0; j < 4; j++)
                 {
                     // Format each element with 2 decimal places
-                    result += matrix[i, j].ToString("F2") + "\t";
+                    result += matrix[j, i].ToString("F2") + "\t";
                 }
                 // Add a new line after each row
                 result += "\n";
