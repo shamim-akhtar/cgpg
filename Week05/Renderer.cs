@@ -7,19 +7,14 @@ namespace CGPG
 {
     // Be warned, there is a LOT of stuff here. It might seem complicated, but just take it slow and you'll be fine.
     // OpenGL's initial hurdle is quite large, but once you get past that, things will start making more sense.
-    public class Window : GameWindow
+    public class Renderer : GameWindow
     {
-        // Create the vertices for our triangle. These are listed in normalized device coordinates (NDC)
-        // In NDC, (0, 0) is the center of the screen.
-        // Negative X coordinates move to the left, positive X move to the right.
-        // Negative Y coordinates move to the bottom, positive Y move to the top.
-        // OpenGL only supports rendering in 3D, so to create a flat triangle, the Z coordinate will be kept as 0.
-        private readonly float[] _vertices =
+        private float[]? _vertices = null;
+
+        public void SetVertexArray(float[] vertices)
         {
-            -0.5f, -0.5f, 0.0f, // Bottom-left vertex
-            0.5f, -0.5f, 0.0f, // Bottom-right vertex
-            0.0f,  0.5f, 0.0f  // Top vertex
-        };
+            _vertices = vertices;
+        }
 
         // These are the handles to OpenGL objects. A handle is an integer representing where the object lives on the
         // graphics card. Consider them sort of like a pointer; we can't do anything with them directly, but we can
@@ -35,14 +30,22 @@ namespace CGPG
         // What shaders are and what they're used for will be explained later in this tutorial.
         private Shader _shader;
 
-        public Window(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
-            : base(gameWindowSettings, nativeWindowSettings)
+        public Renderer(
+            GameWindowSettings gameWindowSettings, 
+            NativeWindowSettings nativeWindowSettings)
+                : base(gameWindowSettings, nativeWindowSettings)
         {
         }
 
         // Now, we start initializing OpenGL.
         protected override void OnLoad()
         {
+            if (_vertices == null)
+            {
+                Console.WriteLine("Vertices are null");
+                return;
+            }
+
             base.OnLoad();
 
             // This will be the color of the background after we clear it, in normalized colors.
