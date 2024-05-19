@@ -16,7 +16,7 @@ namespace Week05
                 Flags = ContextFlags.ForwardCompatible,
             };
 
-            var window = new Renderer(GameWindowSettings.Default, nativeWindowSettings);
+            var renderer = new Renderer(GameWindowSettings.Default, nativeWindowSettings);
 
             // Create the vertices for our triangle.
             // These are listed in normalized device coordinates (NDC)
@@ -33,9 +33,9 @@ namespace Week05
             };
 
             //Set the vertex array to the renderer.
-            window.SetVertexArray(vertices);
+            renderer.SetVertexArray(vertices);
 
-            window.Run();
+            renderer.Run();
             
         }
     }
