@@ -2,6 +2,7 @@
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Windowing.Desktop;
+using OpenTK.Mathematics;
 
 namespace CGPG
 {
@@ -10,167 +11,134 @@ namespace CGPG
     public class Renderer : GameWindow
     {
         private float[]? _vertices = null;
+        private uint[]? _indices = null;
 
         public void SetVertexArray(float[] vertices)
         {
             _vertices = vertices;
         }
+        public void SetIndexArray(uint[] indices) 
+        { 
+            _indices = indices; 
+        }
+        private int _elementBufferObject;
 
-        // These are the handles to OpenGL objects. A handle is an integer representing where the object lives on the
-        // graphics card. Consider them sort of like a pointer; we can't do anything with them directly, but we can
-        // send them to OpenGL functions that need them.
-
-        // What these objects are will be explained in OnLoad.
         private int _vertexBufferObject;
 
         private int _vertexArrayObject;
 
-        // This class is a wrapper around a shader, which helps us manage it.
-        // The shader class's code is in the Common project.
-        // What shaders are and what they're used for will be explained later in this tutorial.
         private Shader _shader;
 
-        public Renderer(
-            GameWindowSettings gameWindowSettings, 
-            NativeWindowSettings nativeWindowSettings)
-                : base(gameWindowSettings, nativeWindowSettings)
+        private Texture _texture;
+
+        //private Texture _texture2;
+        Matrix4 transform = Matrix4.Identity;
+
+        public Renderer(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
+            : base(gameWindowSettings, nativeWindowSettings)
         {
         }
 
-        // Now, we start initializing OpenGL.
         protected override void OnLoad()
         {
-            if (_vertices == null)
-            {
-                Console.WriteLine("Vertices are null");
-                return;
-            }
-
             base.OnLoad();
 
-            // This will be the color of the background after we clear it, in normalized colors.
-            // Normalized colors are mapped on a range of 0.0 to 1.0, with 0.0 representing black, and 1.0 representing
-            // the largest possible value for that channel.
-            // This is a deep green.
             GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-            // We need to send our vertices over to the graphics card so OpenGL can use them.
-            // To do this, we need to create what's called a Vertex Buffer Object (VBO).
-            // These allow you to upload a bunch of data to a buffer, and send the buffer to the graphics card.
-            // This effectively sends all the vertices at the same time.
-
-            // First, we need to create a buffer. This function returns a handle to it, but as of right now, it's empty.
-            _vertexBufferObject = GL.GenBuffer();
-
-            // Now, bind the buffer. OpenGL uses one global state, so after calling this,
-            // all future calls that modify the VBO will be applied to this buffer until another buffer is bound instead.
-            // The first argument is an enum, specifying what type of buffer we're binding. A VBO is an ArrayBuffer.
-            // There are multiple types of buffers, but for now, only the VBO is necessary.
-            // The second argument is the handle to our buffer.
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
-
-            // Finally, upload the vertices to the buffer.
-            // Arguments:
-            //   Which buffer the data should be sent to.
-            //   How much data is being sent, in bytes. You can generally set this to the length of your array, multiplied by sizeof(array type).
-            //   The vertices themselves.
-            //   How the buffer will be used, so that OpenGL can write the data to the proper memory space on the GPU.
-            //   There are three different BufferUsageHints for drawing:
-            //     StaticDraw: This buffer will rarely, if ever, update after being initially uploaded.
-            //     DynamicDraw: This buffer will change frequently after being initially uploaded.
-            //     StreamDraw: This buffer will change on every frame.
-            //   Writing to the proper memory space is important! Generally, you'll only want StaticDraw,
-            //   but be sure to use the right one for your use case.
-            GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * sizeof(float), _vertices, BufferUsageHint.StaticDraw);
-
-            // One notable thing about the buffer we just loaded data into is that it doesn't have any structure to it. It's just a bunch of floats (which are actaully just bytes).
-            // The opengl driver doesn't know how this data should be interpreted or how it should be divided up into vertices. To do this opengl introduces the idea of a 
-            // Vertex Array Obejct (VAO) which has the job of keeping track of what parts or what buffers correspond to what data. In this example we want to set our VAO up so that 
-            // it tells opengl that we want to interpret 12 bytes as 3 floats and divide the buffer into vertices using that.
-            // To do this we generate and bind a VAO (which looks deceptivly similar to creating and binding a VBO, but they are different!).
             _vertexArrayObject = GL.GenVertexArray();
             GL.BindVertexArray(_vertexArrayObject);
 
-            // Now, we need to setup how the vertex shader will interpret the VBO data; you can send almost any C datatype (and a few non-C ones too) to it.
-            // While this makes them incredibly flexible, it means we have to specify how that data will be mapped to the shader's input variables.
+            _vertexBufferObject = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
+            GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * sizeof(float), _vertices, BufferUsageHint.StaticDraw);
 
-            // To do this, we use the GL.VertexAttribPointer function
-            // This function has two jobs, to tell opengl about the format of the data, but also to associate the current array buffer with the VAO.
-            // This means that after this call, we have setup this attribute to source data from the current array buffer and interpret it in the way we specified.
-            // Arguments:
-            //   Location of the input variable in the shader. the layout(location = 0) line in the vertex shader explicitly sets it to 0.
-            //   How many elements will be sent to the variable. In this case, 3 floats for every vertex.
-            //   The data type of the elements set, in this case float.
-            //   Whether or not the data should be converted to normalized device coordinates. In this case, false, because that's already done.
-            //   The stride; this is how many bytes are between the last element of one vertex and the first element of the next. 3 * sizeof(float) in this case.
-            //   The offset; this is how many bytes it should skip to find the first element of the first vertex. 0 as of right now.
-            // Stride and Offset are just sort of glossed over for now, but when we get into texture coordinates they'll be shown in better detail.
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+            _elementBufferObject = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _elementBufferObject);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Length * sizeof(uint), _indices, BufferUsageHint.StaticDraw);
 
-            // Enable variable 0 in the shader.
-            GL.EnableVertexAttribArray(0);
-
-            // We've got the vertices done, but how exactly should this be converted to pixels for the final image?
-            // Modern OpenGL makes this pipeline very free, giving us a lot of freedom on how vertices are turned to pixels.
-            // The drawback is that we actually need two more programs for this! These are called "shaders".
-            // Shaders are tiny programs that live on the GPU. OpenGL uses them to handle the vertex-to-pixel pipeline.
-            // Check out the Shader class in Common to see how we create our shaders, as well as a more in-depth explanation of how shaders work.
-            // shader.vert and shader.frag contain the actual shader code.
+            // shader.frag has been modified yet again, take a look at it as well.
             _shader = new Shader("Shaders/shader.vert", "Shaders/shader.frag");
-
-            // Now, enable the shader.
-            // Just like the VBO, this is global, so every function that uses a shader will modify this one until a new one is bound instead.
             _shader.Use();
 
-            // Setup is now complete! Now we move to the OnRenderFrame function to finally draw the triangle.
+            var vertexLocation = _shader.GetAttribLocation("aPosition");
+            GL.EnableVertexAttribArray(vertexLocation);
+            GL.VertexAttribPointer(vertexLocation, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 0);
+
+            var texCoordLocation = _shader.GetAttribLocation("aTexCoord");
+            GL.EnableVertexAttribArray(texCoordLocation);
+            GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
+
+            _texture = Texture.LoadFromFile("Resources/cartoon-house.jpg");
+            // Texture units are explained in Texture.cs, at the Use function.
+            // First texture goes in texture unit 0.
+            _texture.Use(TextureUnit.Texture0);
+
+            // Next, we must setup the samplers in the shaders to use the right textures.
+            // The int we send to the uniform indicates which texture unit the sampler should use.
+            _shader.SetInt("texture0", 0);
         }
 
-        // Now that initialization is done, let's create our render loop.
+        public void SetMatrix(Mat4 m)
+        {
+            //transform.Row0 = new Vector4(m.matrix[0, 0], m.matrix[0, 1], m.matrix[0, 2], m.matrix[0, 3]);
+            //transform.Row1 = new Vector4(m.matrix[1, 0], m.matrix[1, 1], m.matrix[1, 2], m.matrix[1, 3]);
+            //transform.Row2 = new Vector4(m.matrix[2, 0], m.matrix[2, 1], m.matrix[2, 2], m.matrix[2, 3]);
+            //transform.Row3 = new Vector4(m.matrix[3, 0], m.matrix[3, 1], m.matrix[3, 2], m.matrix[3, 3]);
+            transform.M11 = m.matrix[0, 0];
+            transform.M12 = m.matrix[0, 1];
+            transform.M13 = m.matrix[0, 2];
+            transform.M14 = m.matrix[0, 3];
+
+            transform.M21 = m.matrix[1, 0];
+            transform.M22 = m.matrix[1, 1];
+            transform.M23 = m.matrix[1, 2];
+            transform.M24 = m.matrix[1, 3];
+
+            transform.M31 = m.matrix[2, 0];
+            transform.M32 = m.matrix[2, 1];
+            transform.M33 = m.matrix[2, 2];
+            transform.M34 = m.matrix[2, 3];
+
+            transform.M41 = m.matrix[3, 0];
+            transform.M42 = m.matrix[3, 1];
+            transform.M43 = m.matrix[3, 2];
+            transform.M44 = m.matrix[3, 3];
+        }
+
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             base.OnRenderFrame(e);
+            if (_indices == null)
+            {
+                Console.WriteLine("Index array is null");
+                return;
+            }
 
-            // This clears the image, using what you set as GL.ClearColor earlier.
-            // OpenGL provides several different types of data that can be rendered.
-            // You can clear multiple buffers by using multiple bit flags.
-            // However, we only modify the color, so ColorBufferBit is all we need to clear.
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
-            // To draw an object in OpenGL, it's typically as simple as binding your shader,
-            // setting shader uniforms (not done here, will be shown in a future tutorial)
-            // binding the VAO,
-            // and then calling an OpenGL function to render.
-
-            // Bind the shader
-            _shader.Use();
-
-            // Bind the VAO
             GL.BindVertexArray(_vertexArrayObject);
 
-            // And then call our drawing function.
-            // For this tutorial, we'll use GL.DrawArrays, which is a very simple rendering function.
-            // Arguments:
-            //   Primitive type; What sort of geometric primitive the vertices represent.
-            //     OpenGL used to support many different primitive types, but almost all of the ones still supported
-            //     is some variant of a triangle. Since we just want a single triangle, we use Triangles.
-            //   Starting index; this is just the start of the data you want to draw. 0 here.
-            //   How many vertices you want to draw. 3 for a triangle.
-            GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
+            _texture.Use(TextureUnit.Texture0);
+            _shader.Use();
 
-            // OpenTK windows are what's known as "double-buffered". In essence, the window manages two buffers.
-            // One is rendered to while the other is currently displayed by the window.
-            // This avoids screen tearing, a visual artifact that can happen if the buffer is modified while being displayed.
-            // After drawing, call this function to swap the buffers. If you don't, it won't display what you've rendered.
+            // Create the transformation matrix.
+            _shader.SetMatrix4("transform", transform);
+
+            GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
+
             SwapBuffers();
-
-            // And that's all you have to do for rendering! You should now see a yellow triangle on a black screen.
         }
+
+        public delegate void DelegateOnUpdate(Renderer ren, FrameEventArgs e, KeyboardState keyboard);
+        public DelegateOnUpdate? OnUpdate = null;
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             base.OnUpdateFrame(e);
 
             var input = KeyboardState;
+
+            OnUpdate?.Invoke(this, e, input);
 
             if (input.IsKeyDown(Keys.Escape))
             {
@@ -182,38 +150,7 @@ namespace CGPG
         {
             base.OnResize(e);
 
-            // When the window gets resized, we have to call GL.Viewport to resize OpenGL's viewport to match the new size.
-            // If we don't, the NDC will no longer be correct.
             GL.Viewport(0, 0, Size.X, Size.Y);
-        }
-
-        // Now, for cleanup.
-        // You should generally not do cleanup of opengl resources when exiting an application,
-        // as that is handled by the driver and operating system when the application exits.
-        // 
-        // There are reasons to delete opengl resources, but exiting the application is not one of them.
-        // This is provided here as a reference on how resource cleanup is done in opengl, but
-        // should not be done when exiting the application.
-        //
-        // Places where cleanup is appropriate would be: to delete textures that are no
-        // longer used for whatever reason (e.g. a new scene is loaded that doesn't use a texture).
-        // This would free up video ram (VRAM) that can be used for new textures.
-        //
-        // The coming chapters will not have this code.
-        protected override void OnUnload()
-        {
-            // Unbind all the resources by binding the targets to 0/null.
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            GL.BindVertexArray(0);
-            GL.UseProgram(0);
-
-            // Delete all the resources.
-            GL.DeleteBuffer(_vertexBufferObject);
-            GL.DeleteVertexArray(_vertexArrayObject);
-
-            GL.DeleteProgram(_shader.Handle);
-
-            base.OnUnload();
         }
     }
 }
