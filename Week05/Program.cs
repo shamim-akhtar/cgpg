@@ -11,7 +11,7 @@ namespace Week05
         {
             var nativeWindowSettings = new NativeWindowSettings()
             {
-                ClientSize = new Vector2i(800, 600),
+                ClientSize = new Vector2i(800, 800),
                 Title = "CGPG - Creating a Window using OpenTK",
                 Flags = ContextFlags.ForwardCompatible,
             };
@@ -19,13 +19,22 @@ namespace Week05
             var renderer = new Renderer(GameWindowSettings.Default, nativeWindowSettings);
             float[] vertices =
             {
-                -0.5f, -0.5f, 0.0f, // Bottom-left vertex
-                0.5f, -0.5f, 0.0f, // Bottom-right vertex
-                0.0f,  0.5f, 0.0f  // Top vertex
+                // Position         Texture coordinates
+                0.2f, 0.2f, 0.0f, 1.0f, 1.0f, // top right
+                0.2f, -0.2f, 0.0f, 1.0f, 0.0f, // bottom right
+                -0.2f, -0.2f, 0.0f, 0.0f, 0.0f, // bottom left
+                -0.2f, 0.2f, 0.0f, 0.0f, 1.0f  // top left
+            };
+
+            uint[] indices =
+            {
+                0, 1, 3,
+                1, 2, 3
             };
 
             //Set the vertex array to the renderer.
             renderer.SetVertexArray(vertices);
+            renderer.SetIndexArray(indices);
 
             renderer.Run();
             
