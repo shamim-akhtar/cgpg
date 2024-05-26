@@ -18,20 +18,20 @@ namespace Week06
             FrameEventArgs e, 
             KeyboardState input)
         {
-            if (input.IsKeyDown(Keys.S))
-            {
-                Mat4 scale = new Mat4();
-                scale.MakeScale(2.0f, 1.0f, 1.0f);
-                Console.Write(scale.ToString());
-                renderer.SetMatrix(scale);
-            }
-            if (input.IsKeyDown(Keys.T))
-            {
-                Mat4 trans = new Mat4();
-                trans.MakeTranslate(0.5f, 0.0f, 0.0f);
-                Console.Write(trans.ToString());
-                renderer.SetMatrix(trans);
-            }
+            //if (input.IsKeyDown(Keys.S))
+            //{
+            //    Mat4 scale = new Mat4();
+            //    scale.MakeScale(2.0f, 1.0f, 1.0f);
+            //    Console.Write(scale.ToString());
+            //    renderer.SetMatrix(scale);
+            //}
+            //if (input.IsKeyDown(Keys.T))
+            //{
+            //    Mat4 trans = new Mat4();
+            //    trans.MakeTranslate(0.5f, 0.0f, 0.0f);
+            //    Console.Write(trans.ToString());
+            //    renderer.SetMatrix(trans);
+            //}
         }
 
         private static void Main()
@@ -64,16 +64,22 @@ namespace Week06
                 1, 2, 3
             };
 
+            Geometry quad = new Geometry();
+
             //Set the vertex array to the renderer.
-            renderer.SetVertexArray(vertices);
-            renderer.SetIndexArray(indices);
+            quad.SetVertexArray(vertices);
+            quad.SetIndexArray(indices);
 
             //----- Test out the matrix scale -------//
             Mat4 mymat_scale = new Mat4();
             mymat_scale.MakeScale(3.0f, 1.0f, 1.0f);
             Console.WriteLine("mymat_scale");
             Console.Write(mymat_scale.ToString());
-            renderer.SetMatrix(mymat_scale);
+            quad.SetMatrix(mymat_scale);
+            quad.SetTexture("Resources/cartoon-house.jpg");
+            quad.SetShader("Shaders/shader.vert", "Shaders/shader.frag");
+
+            renderer.AddGeometry(quad);
 
             renderer.Run();
             

@@ -154,10 +154,10 @@ namespace CGPG
 
         public void Dispose()
         {
-            // Delete buffers and array to free up resources
-            GL.DeleteBuffer(_elementBufferObject);
-            GL.DeleteBuffer(_vertexBufferObject);
-            GL.DeleteVertexArray(_vertexArrayObject);
+            //// Delete buffers and array to free up resources
+            //GL.DeleteBuffer(_elementBufferObject);
+            //GL.DeleteBuffer(_vertexBufferObject);
+            //GL.DeleteVertexArray(_vertexArrayObject);
         }
     }
 }
