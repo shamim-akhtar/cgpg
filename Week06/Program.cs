@@ -69,13 +69,6 @@ namespace Week06
             //Set the vertex array to the renderer.
             quad.SetVertexArray(vertices);
             quad.SetIndexArray(indices);
-
-            //----- Test out the matrix scale -------//
-            Mat4 mymat_scale = new Mat4();
-            mymat_scale.MakeScale(3.0f, 1.0f, 1.0f);
-            Console.WriteLine("mymat_scale");
-            Console.Write(mymat_scale.ToString());
-            quad.SetMatrix(mymat_scale);
             quad.SetTexture("Resources/cartoon-house.jpg");
             quad.SetShader("Shaders/shader.vert", "Shaders/shader.frag");
 

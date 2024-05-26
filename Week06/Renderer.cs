@@ -24,17 +24,14 @@ namespace CGPG
         protected override void OnLoad()
         {
             base.OnLoad();
-            //for (int i = 0; i < geometries.Count; i++)
-            //{
-            //    geometries[i].Compile();
-            //}
+            GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             base.OnRenderFrame(e);
-            GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-            for (int i = 0;i < geometries.Count;i++)
+            GL.Clear(ClearBufferMask.ColorBufferBit);
+            for (int i = 0; i < geometries.Count; i++)
             {
                 geometries[i].Draw();
             }
