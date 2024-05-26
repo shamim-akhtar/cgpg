@@ -133,7 +133,7 @@ namespace CGPG
             transform.M44 = m.matrix[3, 3];
         }
 
-        public void Draw()
+        public void Draw(Camera camera)
         {
             if (dirty) Compile();
 
@@ -146,7 +146,10 @@ namespace CGPG
             if (_shader != null)
             {
                 _shader.Use();
-                _shader.SetMatrix4("transform", transform);
+                _shader.SetMatrix4("model", transform);
+
+                _shader.SetMatrix4("view", camera.GetViewMatrix());
+                _shader.SetMatrix4("projection", camera.GetProjectionMatrix());
             }
 
             GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
