@@ -11,9 +11,12 @@ namespace CGPG
     public class Renderer : GameWindow
     {
         List<Geometry> geometries = new List<Geometry>();
+        Camera _camera;
         public Renderer(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
             : base(gameWindowSettings, nativeWindowSettings)
         {
+            _camera = new Camera(Vector3.UnitZ * 5, Size.X / (float)Size.Y);
+            _camera.Fov = 45.0f;
         }
 
         public void AddGeometry(Geometry geometry)
@@ -33,7 +36,7 @@ namespace CGPG
             GL.Clear(ClearBufferMask.ColorBufferBit);
             for (int i = 0; i < geometries.Count; i++)
             {
-                geometries[i].Draw();
+                geometries[i].Draw(_camera);
             }
             SwapBuffers();
         }
@@ -60,6 +63,7 @@ namespace CGPG
             base.OnResize(e);
 
             GL.Viewport(0, 0, Size.X, Size.Y);
+            _camera.AspectRatio = Size.X / (float)Size.Y;
         }
     }
 }
