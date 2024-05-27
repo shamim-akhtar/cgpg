@@ -85,7 +85,7 @@ namespace CGPG
         }
         #endregion
 
-        #region Scale
+        #region Translate
         public void MakeTranslate(float x, float y, float z)
         {
             matrix[0, 0] = 1.0f; matrix[0, 1] = 0.0f; matrix[0, 2] = 0.0f; matrix[0, 3] = 0.0f;
