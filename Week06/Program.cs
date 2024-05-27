@@ -13,7 +13,7 @@ namespace Week06
         {
             var nativeWindowSettings = new NativeWindowSettings()
             {
-                ClientSize = new Vector2i(800, 800),
+                ClientSize = new Vector2i(800, 450),
                 Title = "CGPG - Week 6 - Creating a Window using OpenTK",
                 Flags = ContextFlags.ForwardCompatible,
             };
