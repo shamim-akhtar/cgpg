@@ -33,8 +33,14 @@ namespace Week06
 
             // Testing - Scale
             Mat4 rotz = new Mat4();
-            rotz.MakeRotate(0.0f, 45.0f, 0.0f);
-            cube.SetMatrix(rotz);
+            rotz.MakeRotate(0.0f, 0.0f, 45.0f);
+            //cube.SetMatrix(rotz);
+
+            Mat4 concat = new Mat4();
+            concat.Mult(tran, scal);
+            concat.PostMult(rotz);
+
+            cube.SetMatrix(concat);
 
             renderer.AddGeometry(cube);
 
