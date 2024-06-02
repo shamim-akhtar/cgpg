@@ -49,7 +49,7 @@ public static class RayTracer
             this.Radius = radius;
         }
 
-        public bool Intersect(Ray ray, float minT, float maxT, out HitRecord hitRecord)
+        public bool Intersect(Ray ray, float minT, float maxT, out HitRecord? hitRecord)
         {
             Vec3 oc = ray.Origin - Center;
             float a = Vec3.Dot(ray.Direction, ray.Direction);
@@ -219,7 +219,6 @@ public static class RayTracer
                 }
             }
         }
-
 
         renderer.Run();
     }
