@@ -101,7 +101,7 @@ namespace CGPG
         {
             return x * x + y * y + z * z;
         }
-        public float Normalize()
+        public Vec3 Normalize()
         {
             float norm = Length();
             if (norm > 0.0f)
@@ -111,7 +111,15 @@ namespace CGPG
                 y *= inv;
                 z *= inv;
             }
-            return norm;
+            return this;
+        }
+
+        public static Vec3 operator *(float rhs, Vec3 lhs)
+        {
+            lhs.x *= rhs;
+            lhs.y *= rhs;
+            lhs.z *= rhs;
+            return lhs;
         }
 
         public static Vec3 operator *(Vec3 lhs, float rhs)
@@ -119,6 +127,14 @@ namespace CGPG
             lhs.x *= rhs;
             lhs.y *= rhs;
             lhs.z *= rhs;
+            return lhs;
+        }
+
+        public static Vec3 operator *(Vec3 lhs, Vec3 rhs)
+        {
+            lhs.x *= rhs.x;
+            lhs.y *= rhs.y;
+            lhs.z *= rhs.z;
             return lhs;
         }
 

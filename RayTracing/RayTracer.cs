@@ -5,6 +5,21 @@ using OpenTK.Windowing.Desktop;
 
 public static class RayTracer
 {
+    public static class Utils
+    {
+        private static readonly Random random = new Random();
+
+        public static Vec3 RandomInUnitSphere()
+        {
+            Vec3 p;
+            do
+            {
+                p = 2.0f * new Vec3((float)random.NextDouble(), (float)random.NextDouble(), (float)random.NextDouble()) - new Vec3(1, 1, 1);
+            } while (p.LengthSquared() >= 1.0f);
+            return p;
+        }
+    }
+
     public class Ray
     {
         public Vec3 Origin { get; private set; }
@@ -21,15 +36,91 @@ public static class RayTracer
             return Origin + (Direction * t);
         }
     }
+    public abstract class Material
+    {
+        public abstract bool Scatter(Ray ray, HitRecord hitRecord, out Vec3 attenuation, out Ray scattered);
+    }
+    public class Lambertian : Material
+    {
+        public Vec3 Albedo { get; }
+
+        public Lambertian(Vec3 albedo)
+        {
+            Albedo = albedo;
+        }
+
+        public override bool Scatter(Ray ray, HitRecord hitRecord, out Vec3 attenuation, out Ray scattered)
+        {
+            // Generate a random point in a unit sphere
+            Vec3 target = hitRecord.HitPoint + hitRecord.Normal + Utils.RandomInUnitSphere();
+
+            // Create a scattered ray pointing in the direction of the target
+            scattered = new Ray(hitRecord.HitPoint, target - hitRecord.HitPoint);
+
+            // Set attenuation to the albedo of the material
+            attenuation = Albedo;
+
+            return true;
+        }
+    }
+    public class Metal : Material
+    {
+        public Vec3 Albedo { get; }
+        public float Fuzziness { get; }
+
+        public Metal(Vec3 albedo, float fuzziness)
+        {
+            Albedo = albedo;
+            Fuzziness = fuzziness < 1 ? fuzziness : 1; // Ensure fuzziness is between 0 and 1
+        }
+
+        public override bool Scatter(Ray ray, HitRecord hitRecord, out Vec3 attenuation, out Ray scattered)
+        {
+            Vec3 reflected = Reflect(ray.Direction.Normalize(), hitRecord.Normal);
+            scattered = new Ray(hitRecord.HitPoint, reflected + Fuzziness * Utils.RandomInUnitSphere());
+            attenuation = Albedo;
+            return Vec3.Dot(scattered.Direction, hitRecord.Normal) > 0;
+        }
+
+        private Vec3 Reflect(Vec3 v, Vec3 n)
+        {
+            return v - 2 * Vec3.Dot(v, n) * n;
+        }
+    }
+
+
+    public class Dielectric : Material
+    {
+        public float RefractiveIndex { get; }
+
+        public Dielectric(float refractiveIndex)
+        {
+            RefractiveIndex = refractiveIndex;
+        }
+
+        public override bool Scatter(Ray ray, HitRecord hitRecord, out Vec3 attenuation, out Ray scattered)
+        {
+            // Implement scattering logic for Dielectric material
+            // For example, you can calculate the refraction and reflection
+            // based on Snell's law
+            scattered = new Ray(new Vec3(0.0f, 0.0f, 0.0f), new Vec3(0.0f, 0.0f, 0.0f));
+            attenuation = new Vec3(0.0f, 0.0f, 0.0f); // Placeholder, replace with actual logic
+            return false; // Placeholder, replace with actual logic
+        }
+    }
+
+
     public class HitRecord
     {
         public float T { get; set; }
         public Vec3? HitPoint { get; set; }
         public Vec3? Normal { get; set; }
+        public Material? Material { get; set; }
     }
 
     public abstract class Intersectable
     {
+        public Material? Material { get; set; } = null;
         public abstract bool Intersect(Ray ray, float minT, float maxT, out HitRecord? hitRecord);
     }
 
@@ -38,10 +129,11 @@ public static class RayTracer
         public Vec3 Center { get; private set; }
         public float Radius { get; private set; }
 
-        public Sphere(Vec3 center, float radius)
+        public Sphere(Vec3 center, float radius, Material mat)
         {
             this.Center = center;
             this.Radius = radius;
+            this.Material = mat;
         }
 
         public override bool Intersect(Ray ray, float minT, float maxT, out HitRecord? hitRecord)
@@ -62,6 +154,7 @@ public static class RayTracer
                     hitRecord.HitPoint = ray.PointAt(hitRecord.T);
                     hitRecord.Normal = (hitRecord.HitPoint - Center);// / Radius;
                     hitRecord.Normal.Normalize();
+                    hitRecord.Material = Material;
                     return true;
                 }
                 temp = (-b + MathF.Sqrt(discriminant)) / a;
@@ -72,6 +165,7 @@ public static class RayTracer
                     hitRecord.HitPoint = ray.PointAt(hitRecord.T);
                     hitRecord.Normal = (hitRecord.HitPoint - Center);// / Radius;
                     hitRecord.Normal.Normalize();
+                    hitRecord.Material = Material;
                     return true;
                 }
             }
@@ -134,9 +228,14 @@ public static class RayTracer
     private static void Main()
     {
         Scene scene = new Scene();
-        Sphere sphere1 = new Sphere(new Vec3(0, 0, 1.5f), 0.5f);
+        Sphere sphere1 = new Sphere(new Vec3(0, 0, 1.5f), 
+            0.5f, 
+            new Metal(new Vec3(1.0f, 1.0f, 1.0f), 0.5f));
         scene.Add(sphere1);
-        Sphere sphere2 = new Sphere(new Vec3(0, -101.5f, 1), 100.0f);
+        Sphere sphere2 = new Sphere(
+            new Vec3(0, -101.5f, 1), 
+            100.0f, 
+            new Lambertian(new Vec3(1.0f, 1.0f, 1.0f)));
         scene.Add(sphere2);
 
         int sx = 800;
@@ -171,7 +270,7 @@ public static class RayTracer
         float dx = nearPlaneWidth / tx;
         float dy = nearPlaneHeight / ty;
 
-        int numSamples = 10;
+        int numSamples = 100;
 
         for (int j = 0; j < ty; j++)
         {
@@ -192,27 +291,7 @@ public static class RayTracer
                     Vec3 direction = pixelPoint - cameraOrigin;
 
                     Ray ray = new Ray(cameraOrigin, direction);
-
-                    // Check for intersection with the scene
-                    HitRecord? hit;
-                    if (scene.Intersect(ray, 0.001f, float.MaxValue, out hit))
-                    {
-                        Vec3? normal = hit?.Normal;
-
-                        // Calculate color based on normal
-                        float r = (normal.x + 1) / 2;
-                        float g = (normal.y + 1) / 2;
-                        float b = (normal.z + 1) / 2;
-
-                        // Accumulate color for this random ray
-                        colorAccumulator += new Vec3(r, g, b);
-                    }
-                    else
-                    {
-                        // No intersection, continue with your existing logic
-                        var (r, g, b) = ComputeBlueShadeInY(ray);
-                        colorAccumulator += new Vec3(r, g, b);
-                    }
+                    colorAccumulator += Colorise(ray, scene, 0);
                 }
 
                 int index = (j * tx + i) * 4; // Calculate the correct index in the byte array
@@ -221,11 +300,46 @@ public static class RayTracer
                 Vec3 finalColor = colorAccumulator / (float)numSamples;
 
                 // Set color to the pixel
-                renderer.Pix[index] = (byte)(finalColor.x * 255);
-                renderer.Pix[index + 1] = (byte)(finalColor.y * 255);
-                renderer.Pix[index + 2] = (byte)(finalColor.z * 255);
+                renderer.Pix[index] = (byte)(Math.Sqrt(finalColor.x) * 255);
+                renderer.Pix[index + 1] = (byte)(Math.Sqrt(finalColor.y) * 255);
+                renderer.Pix[index + 2] = (byte)(Math.Sqrt(finalColor.z) * 255);
                 renderer.Pix[index + 3] = 255;
             }
+        }
+
+        static Vec3 Colorise(Ray ray, Scene scene, int depth)
+        {
+            Vec3 colorAccumulator = new Vec3(0, 0, 0); // Reset accumulator for each pixel
+            // Check for intersection with the scene
+            HitRecord? hit;
+            if (scene.Intersect(ray, 0.001f, float.MaxValue, out hit))
+            {
+                Ray scatteredRay;
+                Vec3 attenuation;
+                if(depth < 50 && 
+                    hit != null &&
+                    hit.Material.Scatter(ray, hit, out attenuation, out scatteredRay))
+                {
+                    return attenuation * Colorise(scatteredRay, scene, depth + 1);
+                }
+
+                Vec3? normal = hit?.Normal;
+
+                // Calculate color based on normal
+                float r = (normal.x + 1) / 2;
+                float g = (normal.y + 1) / 2;
+                float b = (normal.z + 1) / 2;
+
+                // Accumulate color for this random ray
+                colorAccumulator += new Vec3(r, g, b);
+            }
+            else
+            {
+                // No intersection, continue with your existing logic
+                var (r, g, b) = ComputeBlueShadeInY(ray);
+                colorAccumulator += new Vec3(r, g, b);
+            }
+            return colorAccumulator;
         }
 
         renderer.Run();
