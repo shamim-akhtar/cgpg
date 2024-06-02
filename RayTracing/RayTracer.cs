@@ -117,12 +117,6 @@ public static class RayTracer
 
                 int index = (j * tx + i) * 4; // Calculate the correct index in the byte array
 
-                //renderer.Pix[index] = (byte)(r * 255);
-                //renderer.Pix[index + 1] = (byte)(g * 255);
-                //renderer.Pix[index + 2] = (byte)(b * 255);
-                //renderer.Pix[index + 3] = 255;
-
-
                 // Check for intersection with the sphere
                 float t;
                 if (sphere.Intersect(ray, out t))
