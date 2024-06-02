@@ -110,7 +110,6 @@ public static class RayTracer
             for (int i = 0; i < tx; i++)
             {
                 float px = -1 + (i + 0.5f) * dx;
-                //float py = 1 - (j + 0.5f) * dy;
                 float py = -1 + (j + 0.5f) * dy;
 
                 float pz = nearPlaneZ;
@@ -119,7 +118,6 @@ public static class RayTracer
                 Vec3 direction = pixelPoint - cameraOrigin;
 
                 Ray ray = new Ray(cameraOrigin, direction);
-                //var (r, g, b) = ComputeBlueShadeInY(ray);
 
                 int index = (j * tx + i) * 4; // Calculate the correct index in the byte array
 
