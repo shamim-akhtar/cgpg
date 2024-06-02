@@ -37,7 +37,7 @@ public static class RayTracer
             this.Radius = radius;
         }
 
-        public bool Intersect(Ray ray, out float t)
+        public bool Intersect(Ray ray, out float t, out Vec3? hitPoint, out Vec3? normal)
         {
             Vec3 oc = ray.Origin - Center;
             float a = Vec3.Dot(ray.Direction, ray.Direction);
@@ -47,11 +47,17 @@ public static class RayTracer
             if (discriminant < 0)
             {
                 t = float.MaxValue;
+                hitPoint = null;
+                normal = null;
                 return false;
             }
             t = (-b - MathF.Sqrt(discriminant)) / (2.0f * a);
+            hitPoint = ray.PointAt(t);
+            normal = (hitPoint - Center);
+            normal.Normalize();
             return true;
         }
+
     }
 
     public static (float r, float g, float b) ComputeColor(Ray ray)
@@ -119,12 +125,18 @@ public static class RayTracer
 
                 // Check for intersection with the sphere
                 float t;
-                if (sphere.Intersect(ray, out t))
+                Vec3 hitPoint, normal;
+                if (sphere.Intersect(ray, out t, out hitPoint, out normal))
                 {
-                    // Intersection occurred, set color to red
-                    renderer.Pix[index] = 255;   // Red component
-                    renderer.Pix[index + 1] = 0; // Green component
-                    renderer.Pix[index + 2] = 0; // Blue component
+                    // Calculate color based on normal
+                    float r = (normal.x + 1) / 2;
+                    float g = (normal.y + 1) / 2;
+                    float b = (normal.z + 1) / 2;
+
+                    // Set color to the pixel
+                    renderer.Pix[index] = (byte)(r * 255);
+                    renderer.Pix[index + 1] = (byte)(g * 255);
+                    renderer.Pix[index + 2] = (byte)(b * 255);
                     renderer.Pix[index + 3] = 255; // Alpha component
                 }
                 else
