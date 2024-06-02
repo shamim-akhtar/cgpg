@@ -26,6 +26,7 @@ public static class RayTracer
             return Origin + (Direction * t);
         }
     }
+
     public class Sphere
     {
         public Vec3 Center { get; private set; }
