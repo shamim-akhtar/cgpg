@@ -4,7 +4,9 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using RayTracing;
+using System;
 using System.Diagnostics;
+using static RayTracer;
 
 public static class RayTracer
 {
@@ -22,6 +24,33 @@ public static class RayTracer
         public Vec3 PointAt(float t)
         {
             return Origin + (Direction * t);
+        }
+    }
+    public class Sphere
+    {
+        public Vec3 Center { get; private set; }
+        public float Radius { get; private set; }
+
+        public Sphere(Vec3 center, float radius)
+        {
+            this.Center = center;
+            this.Radius = radius;
+        }
+
+        public bool Intersect(Ray ray, out float t)
+        {
+            Vec3 oc = ray.Origin - Center;
+            float a = Vec3.Dot(ray.Direction, ray.Direction);
+            float b = 2.0f * Vec3.Dot(oc, ray.Direction);
+            float c = Vec3.Dot(oc, oc) - Radius * Radius;
+            float discriminant = b * b - 4 * a * c;
+            if (discriminant < 0)
+            {
+                t = float.MaxValue;
+                return false;
+            }
+            t = (-b - MathF.Sqrt(discriminant)) / (2.0f * a);
+            return true;
         }
     }
 
@@ -48,15 +77,17 @@ public static class RayTracer
     private static void Main()
     {
 
+        Sphere sphere = new Sphere(new Vec3(0, 0, 2), 0.5f);
+
         var nativeWindowSettings = new NativeWindowSettings()
         {
-            ClientSize = new Vector2i(800, 600),
+            ClientSize = new Vector2i(800, 800),
             Title = "CGPG - Ray Tracer",
             Flags = ContextFlags.ForwardCompatible,
         };
 
-        int tx = 512;
-        int ty = 512;
+        int tx = 800;
+        int ty = 800;
         var renderer = new Renderer(nativeWindowSettings, tx, ty);
 
         Vec3 cameraOrigin = new Vec3(0, 0, 0);
@@ -82,14 +113,35 @@ public static class RayTracer
                 Vec3 direction = pixelPoint - cameraOrigin;
 
                 Ray ray = new Ray(cameraOrigin, direction);
-                var (r, g, b) = ComputeBlueShadeInY(ray);
+                //var (r, g, b) = ComputeBlueShadeInY(ray);
 
                 int index = (j * tx + i) * 4; // Calculate the correct index in the byte array
 
-                renderer.Pix[index] = (byte)(r * 255);
-                renderer.Pix[index + 1] = (byte)(g * 255);
-                renderer.Pix[index + 2] = (byte)(b * 255);
-                renderer.Pix[index + 3] = 255;
+                //renderer.Pix[index] = (byte)(r * 255);
+                //renderer.Pix[index + 1] = (byte)(g * 255);
+                //renderer.Pix[index + 2] = (byte)(b * 255);
+                //renderer.Pix[index + 3] = 255;
+
+
+                // Check for intersection with the sphere
+                float t;
+                if (sphere.Intersect(ray, out t))
+                {
+                    // Intersection occurred, set color to red
+                    renderer.Pix[index] = 255;   // Red component
+                    renderer.Pix[index + 1] = 0; // Green component
+                    renderer.Pix[index + 2] = 0; // Blue component
+                    renderer.Pix[index + 3] = 255; // Alpha component
+                }
+                else
+                {
+                    // No intersection, continue with your existing logic
+                    var (r, g, b) = ComputeBlueShadeInY(ray);
+                    renderer.Pix[index] = (byte)(r * 255);
+                    renderer.Pix[index + 1] = (byte)(g * 255);
+                    renderer.Pix[index + 2] = (byte)(b * 255);
+                    renderer.Pix[index + 3] = 255;
+                }
             }
         }
 
