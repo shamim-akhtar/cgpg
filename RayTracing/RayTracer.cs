@@ -28,12 +28,12 @@ public static class RayTracer
         public Vec3? Normal { get; set; }
     }
 
-    public interface IIntersectable
+    public abstract class Intersectable
     {
-        bool Intersect(Ray ray, float minT, float maxT, out HitRecord? hitRecord);
+        public abstract bool Intersect(Ray ray, float minT, float maxT, out HitRecord? hitRecord);
     }
 
-    public class Sphere : IIntersectable
+    public class Sphere : Intersectable
     {
         public Vec3 Center { get; private set; }
         public float Radius { get; private set; }
@@ -44,7 +44,7 @@ public static class RayTracer
             this.Radius = radius;
         }
 
-        public bool Intersect(Ray ray, float minT, float maxT, out HitRecord? hitRecord)
+        public override bool Intersect(Ray ray, float minT, float maxT, out HitRecord? hitRecord)
         {
             Vec3 oc = ray.Origin - Center;
             float a = Vec3.Dot(ray.Direction, ray.Direction);
@@ -81,17 +81,17 @@ public static class RayTracer
         }
     }
 
-    public class Scene : IIntersectable
+    public class Scene : Intersectable
     {
-        List<IIntersectable> objects = new List<IIntersectable>();
+        List<Intersectable> objects = new List<Intersectable>();
         public Scene()
         { }
 
-        public void Add(IIntersectable obj)
+        public void Add(Intersectable obj)
         {
             objects.Add(obj);
         }
-        public bool Intersect(Ray ray, float minT, float maxT, out HitRecord? hitRecord)
+        public override bool Intersect(Ray ray, float minT, float maxT, out HitRecord? hitRecord)
         {
             HitRecord? hit;
             bool anyHit = false;
