@@ -23,12 +23,12 @@ namespace Week06
 
             // Testing - Translation.
             Mat4 tran = new Mat4();
-            tran.MakeTranslate(2.0f, 0.0f, 0.0f);
+            tran.MakeTranslate(2.0f, 1.0f, 0.0f);
             //cube.SetMatrix(tran);
 
-            // Testing - Scale
+            // testing - scale
             Mat4 scal = new Mat4();
-            scal.MakeScale(1.0f, 2.0f, 1.0f);
+            scal.MakeScale(0.5f, 1.0f, 1.0f);
             //cube.SetMatrix(scal);
 
             // Testing - Scale
@@ -36,9 +36,9 @@ namespace Week06
             rotz.MakeRotate(0.0f, 0.0f, 45.0f);
             //cube.SetMatrix(rotz);
 
-            Mat4 concat = new Mat4();
-            concat.Mult(tran, scal);
+            Mat4 concat = new Mat4(scal);
             concat.PostMult(rotz);
+            concat.PostMult(tran);
 
             cube.SetMatrix(concat);
 

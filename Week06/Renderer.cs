@@ -15,7 +15,7 @@ namespace CGPG
         public Renderer(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
             : base(gameWindowSettings, nativeWindowSettings)
         {
-            _camera = new Camera(Vector3.UnitZ * 5, Size.X / (float)Size.Y);
+            _camera = new Camera(Vector3.UnitZ * 10, Size.X / (float)Size.Y);
             _camera.Fov = 45.0f;
         }
 
