@@ -2,11 +2,6 @@
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
-using OpenTK.Windowing.GraphicsLibraryFramework;
-using RayTracing;
-using System;
-using System.Diagnostics;
-using static RayTracer;
 
 public static class RayTracer
 {
@@ -29,13 +24,13 @@ public static class RayTracer
     public class HitRecord
     {
         public float T { get; set; }
-        public Vec3 HitPoint { get; set; }
-        public Vec3 Normal { get; set; }
+        public Vec3? HitPoint { get; set; }
+        public Vec3? Normal { get; set; }
     }
 
     public interface IIntersectable
     {
-        bool Intersect(Ray ray, float minT, float maxT, out HitRecord hitRecord);
+        bool Intersect(Ray ray, float minT, float maxT, out HitRecord? hitRecord);
     }
 
     public class Sphere : IIntersectable
@@ -96,9 +91,9 @@ public static class RayTracer
         {
             objects.Add(obj);
         }
-        public bool Intersect(Ray ray, float minT, float maxT, out HitRecord hitRecord)
+        public bool Intersect(Ray ray, float minT, float maxT, out HitRecord? hitRecord)
         {
-            HitRecord hit;
+            HitRecord? hit;
             bool anyHit = false;
             float closest = maxT;
             hitRecord = null;
@@ -135,93 +130,6 @@ public static class RayTracer
         // Return the interpolated color
         return (0.0f, 0.0f, Math.Max(blueValue, 0)); // Ensure blueValue is non-negative
     }
-
-    //private static void Main()
-    //{
-    //    Scene scene = new Scene();
-    //    Sphere sphere1 = new Sphere(new Vec3(0, 0, 1.5f), 0.5f);
-    //    scene.Add(sphere1);
-    //    Sphere sphere2 = new Sphere(new Vec3(0, -101.5f, 1), 100.0f);
-    //    scene.Add(sphere2);
-
-    //    int tx = 800;
-    //    int ty = 600;
-    //    var nativeWindowSettings = new NativeWindowSettings()
-    //    {
-    //        ClientSize = new Vector2i(tx, ty),
-    //        Title = "CGPG - Ray Tracer",
-    //        Flags = ContextFlags.ForwardCompatible,
-    //    };
-
-
-    //    var renderer = new Renderer(nativeWindowSettings, tx, ty);
-
-    //    Vec3 cameraOrigin = new Vec3(0, 0, 0);
-
-    //    float nearPlaneZ = 1.0f;
-
-    //    // Define the aspect ratio
-    //    float aspectRatio = (float)tx / ty;
-
-    //    // Calculate the near plane width and height based on the aspect ratio
-    //    float nearPlaneWidth = 2.0f;
-    //    float nearPlaneHeight = nearPlaneWidth / aspectRatio;
-
-    //    // Adjust near plane height symmetrically around the center
-    //    float halfNearPlaneHeight = nearPlaneHeight / 2.0f;
-
-    //    // Calculate dx and dy based on the adjusted near plane dimensions
-    //    float dx = nearPlaneWidth / tx;
-    //    float dy = nearPlaneHeight / ty;
-
-    //    for (int j = 0; j < ty; j++)
-    //    {
-    //        for (int i = 0; i < tx; i++)
-    //        {
-    //            float px = -1 + (i + 0.5f) * dx;
-    //            float py = -halfNearPlaneHeight + (j + 0.5f) * dy; // Adjust py
-
-    //            float pz = nearPlaneZ;
-
-    //            Vec3 pixelPoint = new Vec3(px, py, pz);
-    //            Vec3 direction = pixelPoint - cameraOrigin;
-
-    //            Ray ray = new Ray(cameraOrigin, direction);
-
-    //            int index = (j * tx + i) * 4; // Calculate the correct index in the byte array
-
-    //            // Check for intersection with the sphere
-    //            float t;
-    //            Vec3 normal;
-    //            HitRecord hit;
-    //            if (scene.Intersect(ray, 0.0f, 9999.0f, out hit))
-    //            {
-    //                normal = hit.Normal;
-    //                // Calculate color based on normal
-    //                float r = (normal.x + 1) / 2;
-    //                float g = (normal.y + 1) / 2;
-    //                float b = (normal.z + 1) / 2;
-
-    //                // Set color to the pixel
-    //                renderer.Pix[index] = (byte)(r * 255);
-    //                renderer.Pix[index + 1] = (byte)(g * 255);
-    //                renderer.Pix[index + 2] = (byte)(b * 255);
-    //                renderer.Pix[index + 3] = 255; // Alpha component
-    //            }
-    //            else
-    //            {
-    //                // No intersection, continue with your existing logic
-    //                var (r, g, b) = ComputeBlueShadeInY(ray);
-    //                renderer.Pix[index] = (byte)(r * 255);
-    //                renderer.Pix[index + 1] = (byte)(g * 255);
-    //                renderer.Pix[index + 2] = (byte)(b * 255);
-    //                renderer.Pix[index + 3] = 255;
-    //            }
-    //        }
-    //    }
-
-    //    renderer.Run();
-    //}
 
     private static void Main()
     {
@@ -286,10 +194,10 @@ public static class RayTracer
                     Ray ray = new Ray(cameraOrigin, direction);
 
                     // Check for intersection with the scene
-                    HitRecord hit;
-                    if (scene.Intersect(ray, 0.0f, float.MaxValue, out hit))
+                    HitRecord? hit;
+                    if (scene.Intersect(ray, 0.001f, float.MaxValue, out hit))
                     {
-                        Vec3 normal = hit.Normal;
+                        Vec3? normal = hit?.Normal;
 
                         // Calculate color based on normal
                         float r = (normal.x + 1) / 2;
