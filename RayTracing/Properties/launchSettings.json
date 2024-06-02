@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Week06": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\GitHub\\cgpg\\RayTracing"
+    },
+    "Profile 1": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\GitHub\\cgpg\\RayTracing"
+    }
+  }
+}
