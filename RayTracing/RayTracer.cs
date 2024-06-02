@@ -36,6 +36,15 @@ public static class RayTracer
         return (red, green, blue);
     }
 
+    public static (float r, float g, float b) ComputeBlueShadeInY(Ray ray)
+    {
+        float yInterpolation = (ray.Direction.y + 1) / 2;
+        float blueValue = 1.0f - 0.25f * yInterpolation; // Start with 1.0 at bottom and reduce to 0.75 at top
+
+        // Return the interpolated color
+        return (0.0f, 0.0f, Math.Max(blueValue, 0)); // Ensure blueValue is non-negative
+    }
+
     private static void Main()
     {
 
@@ -73,7 +82,7 @@ public static class RayTracer
                 Vec3 direction = pixelPoint - cameraOrigin;
 
                 Ray ray = new Ray(cameraOrigin, direction);
-                var (r, g, b) = ComputeColor(ray);
+                var (r, g, b) = ComputeBlueShadeInY(ray);
 
                 int index = (j * tx + i) * 4; // Calculate the correct index in the byte array
 
