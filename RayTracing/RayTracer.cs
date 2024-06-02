@@ -26,8 +26,19 @@ public static class RayTracer
             return Origin + (Direction * t);
         }
     }
+    public class HitRecord
+    {
+        public float T { get; set; }
+        public Vec3 HitPoint { get; set; }
+        public Vec3 Normal { get; set; }
+    }
 
-    public class Sphere
+    public interface IIntersectable
+    {
+        bool Intersect(Ray ray, float minT, float maxT, out HitRecord hitRecord);
+    }
+
+    public class Sphere : IIntersectable
     {
         public Vec3 Center { get; private set; }
         public float Radius { get; private set; }
@@ -38,27 +49,71 @@ public static class RayTracer
             this.Radius = radius;
         }
 
-        public bool Intersect(Ray ray, out float t, out Vec3? hitPoint, out Vec3? normal)
+        public bool Intersect(Ray ray, float minT, float maxT, out HitRecord hitRecord)
         {
             Vec3 oc = ray.Origin - Center;
             float a = Vec3.Dot(ray.Direction, ray.Direction);
-            float b = 2.0f * Vec3.Dot(oc, ray.Direction);
+            float b = Vec3.Dot(oc, ray.Direction);
             float c = Vec3.Dot(oc, oc) - Radius * Radius;
-            float discriminant = b * b - 4 * a * c;
-            if (discriminant < 0)
-            {
-                t = float.MaxValue;
-                hitPoint = null;
-                normal = null;
-                return false;
-            }
-            t = (-b - MathF.Sqrt(discriminant)) / (2.0f * a);
-            hitPoint = ray.PointAt(t);
-            normal = (hitPoint - Center);
-            normal.Normalize();
-            return true;
-        }
+            float discriminant = b * b - a * c;
 
+            if (discriminant > 0)
+            {
+                float temp = (-b - MathF.Sqrt(discriminant)) / a;
+                if (temp < maxT && temp > minT)
+                {
+                    hitRecord = new HitRecord();
+                    hitRecord.T = temp;
+                    hitRecord.HitPoint = ray.PointAt(hitRecord.T);
+                    hitRecord.Normal = (hitRecord.HitPoint - Center);// / Radius;
+                    hitRecord.Normal.Normalize();
+                    return true;
+                }
+                temp = (-b + MathF.Sqrt(discriminant)) / a;
+                if (temp < maxT && temp > minT)
+                {
+                    hitRecord = new HitRecord();
+                    hitRecord.T = temp;
+                    hitRecord.HitPoint = ray.PointAt(hitRecord.T);
+                    hitRecord.Normal = (hitRecord.HitPoint - Center);// / Radius;
+                    hitRecord.Normal.Normalize();
+                    return true;
+                }
+            }
+
+            hitRecord = null;
+            return false;
+        }
+    }
+
+    public class Scene : IIntersectable
+    {
+        List<IIntersectable> objects = new List<IIntersectable>();
+        public Scene()
+        { }
+
+        public void Add(IIntersectable obj)
+        {
+            objects.Add(obj);
+        }
+        public bool Intersect(Ray ray, float minT, float maxT, out HitRecord hitRecord)
+        {
+            HitRecord hit;
+            bool anyHit = false;
+            float closest = maxT;
+            hitRecord = null;
+
+            for(int i = 0; i < objects.Count; i++)
+            {
+                if (objects[i].Intersect(ray, minT, closest, out hit))
+                {
+                    anyHit = true;
+                    closest = hit.T;
+                    hitRecord = hit;
+                }
+            }
+            return anyHit;
+        }
     }
 
     public static (float r, float g, float b) ComputeColor(Ray ray)
@@ -83,26 +138,39 @@ public static class RayTracer
 
     private static void Main()
     {
+        Scene scene = new Scene();
+        Sphere sphere1 = new Sphere(new Vec3(0, 0, 1.5f), 0.5f);
+        scene.Add(sphere1);
+        Sphere sphere2 = new Sphere(new Vec3(0, -101.5f, 1), 100.0f);
+        scene.Add(sphere2);
 
-        Sphere sphere = new Sphere(new Vec3(0, 0, 2), 0.5f);
-
+        int tx = 800;
+        int ty = 600;
         var nativeWindowSettings = new NativeWindowSettings()
         {
-            ClientSize = new Vector2i(800, 800),
+            ClientSize = new Vector2i(tx, ty),
             Title = "CGPG - Ray Tracer",
             Flags = ContextFlags.ForwardCompatible,
         };
 
-        int tx = 800;
-        int ty = 800;
+
         var renderer = new Renderer(nativeWindowSettings, tx, ty);
 
         Vec3 cameraOrigin = new Vec3(0, 0, 0);
 
         float nearPlaneZ = 1.0f;
-        float nearPlaneWidth = 2.0f;  // from -1 to 1
-        float nearPlaneHeight = 2.0f; // from -1 to 1
 
+        // Define the aspect ratio
+        float aspectRatio = (float)tx / ty;
+
+        // Calculate the near plane width and height based on the aspect ratio
+        float nearPlaneWidth = 2.0f;
+        float nearPlaneHeight = nearPlaneWidth / aspectRatio;
+
+        // Adjust near plane height symmetrically around the center
+        float halfNearPlaneHeight = nearPlaneHeight / 2.0f;
+
+        // Calculate dx and dy based on the adjusted near plane dimensions
         float dx = nearPlaneWidth / tx;
         float dy = nearPlaneHeight / ty;
 
@@ -111,7 +179,7 @@ public static class RayTracer
             for (int i = 0; i < tx; i++)
             {
                 float px = -1 + (i + 0.5f) * dx;
-                float py = -1 + (j + 0.5f) * dy;
+                float py = -halfNearPlaneHeight + (j + 0.5f) * dy; // Adjust py
 
                 float pz = nearPlaneZ;
 
@@ -124,9 +192,11 @@ public static class RayTracer
 
                 // Check for intersection with the sphere
                 float t;
-                Vec3 hitPoint, normal;
-                if (sphere.Intersect(ray, out t, out hitPoint, out normal))
+                Vec3 normal;
+                HitRecord hit;
+                if (scene.Intersect(ray, 0.0f, 9999.0f, out hit))
                 {
+                    normal = hit.Normal;
                     // Calculate color based on normal
                     float r = (normal.x + 1) / 2;
                     float g = (normal.y + 1) / 2;
@@ -149,6 +219,7 @@ public static class RayTracer
                 }
             }
         }
+
 
         renderer.Run();
     }
