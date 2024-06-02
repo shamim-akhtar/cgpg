@@ -34,9 +34,36 @@ namespace CGPG
         //private Texture _texture2;
         Matrix4 transform = Matrix4.Identity;
 
-        public Renderer(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
-            : base(gameWindowSettings, nativeWindowSettings)
+        int nx = 512;
+        int ny = 512;
+
+        public byte[] Pix;
+
+        public Renderer(NativeWindowSettings nativeWindowSettings, int nx, int ny)
+            : base(GameWindowSettings.Default, nativeWindowSettings)
         {
+
+            float[] vertices =
+            {
+                1f,  1f, 0.0f, 1.0f, 1.0f, // top right
+                1f, -1f, 0.0f, 1.0f, 0.0f, // bottom right
+                -1f, -1f, 0.0f, 0.0f, 0.0f, // bottom left
+                -1f,  1f, 0.0f, 0.0f, 1.0f  // top left
+            };
+
+            uint[] indices =
+            {
+                0, 1, 3,
+                1, 2, 3
+            };
+
+            //Set the vertex array to the renderer.
+            SetVertexArray(vertices);
+            SetIndexArray(indices);
+            this.nx = nx;
+            this.ny = ny;
+
+            Pix = new byte[nx * ny * 4];
         }
 
         protected override void OnLoad()
@@ -68,7 +95,7 @@ namespace CGPG
             GL.EnableVertexAttribArray(texCoordLocation);
             GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
 
-            _texture = Texture.CreateEmptyRedTexture(512, 512);// Texture.LoadFromFile("Resources/cartoon-house.jpg");
+            _texture = Texture.CreateEmptyRedTexture(nx, ny);// Texture.LoadFromFile("Resources/cartoon-house.jpg");
             // Texture units are explained in Texture.cs, at the Use function.
             // First texture goes in texture unit 0.
             _texture.Use(TextureUnit.Texture0);
@@ -122,20 +149,10 @@ namespace CGPG
             //UpdateTextureData(newPixelData, 256, 256);
 
             //byte[] newPixelData = GeneratePixelData(_texture.Width, _texture.Height);
-            //UpdateTextureData(newPixelData, _texture.Width, _texture.Height);
+            UpdateTextureData(Pix, _texture.Width, _texture.Height);
         }
 
-        protected override void OnResize(ResizeEventArgs e)
-        {
-            base.OnResize(e);
-
-            GL.Viewport(0, 0, Size.X, Size.Y);
-        }
-        public void UpdateTextureData(byte[] pixelData, int width, int height)
-        {
-            _texture.Use(TextureUnit.Texture0); // Bind the texture
-            GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, pixelData);
-        }
+        //public void SetPixelData()
 
         // Example method to generate pixel data
         private byte[] GeneratePixelData(int width, int height)
@@ -149,6 +166,18 @@ namespace CGPG
                 pixels[i + 3] = 255; // A
             }
             return pixels;
+        }
+
+        protected override void OnResize(ResizeEventArgs e)
+        {
+            base.OnResize(e);
+
+            GL.Viewport(0, 0, Size.X, Size.Y);
+        }
+        public void UpdateTextureData(byte[] pixelData, int width, int height)
+        {
+            _texture.Use(TextureUnit.Texture0); // Bind the texture
+            GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, pixelData);
         }
 
 
