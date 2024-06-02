@@ -136,6 +136,93 @@ public static class RayTracer
         return (0.0f, 0.0f, Math.Max(blueValue, 0)); // Ensure blueValue is non-negative
     }
 
+    //private static void Main()
+    //{
+    //    Scene scene = new Scene();
+    //    Sphere sphere1 = new Sphere(new Vec3(0, 0, 1.5f), 0.5f);
+    //    scene.Add(sphere1);
+    //    Sphere sphere2 = new Sphere(new Vec3(0, -101.5f, 1), 100.0f);
+    //    scene.Add(sphere2);
+
+    //    int tx = 800;
+    //    int ty = 600;
+    //    var nativeWindowSettings = new NativeWindowSettings()
+    //    {
+    //        ClientSize = new Vector2i(tx, ty),
+    //        Title = "CGPG - Ray Tracer",
+    //        Flags = ContextFlags.ForwardCompatible,
+    //    };
+
+
+    //    var renderer = new Renderer(nativeWindowSettings, tx, ty);
+
+    //    Vec3 cameraOrigin = new Vec3(0, 0, 0);
+
+    //    float nearPlaneZ = 1.0f;
+
+    //    // Define the aspect ratio
+    //    float aspectRatio = (float)tx / ty;
+
+    //    // Calculate the near plane width and height based on the aspect ratio
+    //    float nearPlaneWidth = 2.0f;
+    //    float nearPlaneHeight = nearPlaneWidth / aspectRatio;
+
+    //    // Adjust near plane height symmetrically around the center
+    //    float halfNearPlaneHeight = nearPlaneHeight / 2.0f;
+
+    //    // Calculate dx and dy based on the adjusted near plane dimensions
+    //    float dx = nearPlaneWidth / tx;
+    //    float dy = nearPlaneHeight / ty;
+
+    //    for (int j = 0; j < ty; j++)
+    //    {
+    //        for (int i = 0; i < tx; i++)
+    //        {
+    //            float px = -1 + (i + 0.5f) * dx;
+    //            float py = -halfNearPlaneHeight + (j + 0.5f) * dy; // Adjust py
+
+    //            float pz = nearPlaneZ;
+
+    //            Vec3 pixelPoint = new Vec3(px, py, pz);
+    //            Vec3 direction = pixelPoint - cameraOrigin;
+
+    //            Ray ray = new Ray(cameraOrigin, direction);
+
+    //            int index = (j * tx + i) * 4; // Calculate the correct index in the byte array
+
+    //            // Check for intersection with the sphere
+    //            float t;
+    //            Vec3 normal;
+    //            HitRecord hit;
+    //            if (scene.Intersect(ray, 0.0f, 9999.0f, out hit))
+    //            {
+    //                normal = hit.Normal;
+    //                // Calculate color based on normal
+    //                float r = (normal.x + 1) / 2;
+    //                float g = (normal.y + 1) / 2;
+    //                float b = (normal.z + 1) / 2;
+
+    //                // Set color to the pixel
+    //                renderer.Pix[index] = (byte)(r * 255);
+    //                renderer.Pix[index + 1] = (byte)(g * 255);
+    //                renderer.Pix[index + 2] = (byte)(b * 255);
+    //                renderer.Pix[index + 3] = 255; // Alpha component
+    //            }
+    //            else
+    //            {
+    //                // No intersection, continue with your existing logic
+    //                var (r, g, b) = ComputeBlueShadeInY(ray);
+    //                renderer.Pix[index] = (byte)(r * 255);
+    //                renderer.Pix[index + 1] = (byte)(g * 255);
+    //                renderer.Pix[index + 2] = (byte)(b * 255);
+    //                renderer.Pix[index + 3] = 255;
+    //            }
+    //        }
+    //    }
+
+    //    renderer.Run();
+    //}
+
     private static void Main()
     {
         Scene scene = new Scene();
@@ -144,15 +231,17 @@ public static class RayTracer
         Sphere sphere2 = new Sphere(new Vec3(0, -101.5f, 1), 100.0f);
         scene.Add(sphere2);
 
-        int tx = 800;
-        int ty = 600;
+        int sx = 800;
+        int sy = 600;
         var nativeWindowSettings = new NativeWindowSettings()
         {
-            ClientSize = new Vector2i(tx, ty),
+            ClientSize = new Vector2i(sx, sy),
             Title = "CGPG - Ray Tracer",
             Flags = ContextFlags.ForwardCompatible,
         };
 
+        int tx = sx;
+        int ty = sy;
 
         var renderer = new Renderer(nativeWindowSettings, tx, ty);
 
@@ -174,53 +263,65 @@ public static class RayTracer
         float dx = nearPlaneWidth / tx;
         float dy = nearPlaneHeight / ty;
 
+        int numSamples = 10;
+
         for (int j = 0; j < ty; j++)
         {
             for (int i = 0; i < tx; i++)
             {
-                float px = -1 + (i + 0.5f) * dx;
-                float py = -halfNearPlaneHeight + (j + 0.5f) * dy; // Adjust py
+                Vec3 colorAccumulator = new Vec3(0, 0, 0); // Reset accumulator for each pixel
 
-                float pz = nearPlaneZ;
+                for (int s = 0; s < numSamples; s++)
+                {
+                    // Generate random offsets within dx and dy region
+                    float randomOffsetX = (float)(new Random().NextDouble() * dx - dx / 2.0f);
+                    float randomOffsetY = (float)(new Random().NextDouble() * dy - dy / 2.0f);
 
-                Vec3 pixelPoint = new Vec3(px, py, pz);
-                Vec3 direction = pixelPoint - cameraOrigin;
+                    float px = -1 + (i + 0.5f) * dx + randomOffsetX;
+                    float py = -halfNearPlaneHeight + (j + 0.5f) * dy + randomOffsetY;
 
-                Ray ray = new Ray(cameraOrigin, direction);
+                    Vec3 pixelPoint = new Vec3(px, py, nearPlaneZ);
+                    Vec3 direction = pixelPoint - cameraOrigin;
+
+                    Ray ray = new Ray(cameraOrigin, direction);
+
+                    // Check for intersection with the scene
+                    HitRecord hit;
+                    if (scene.Intersect(ray, 0.0f, float.MaxValue, out hit))
+                    {
+                        Vec3 normal = hit.Normal;
+
+                        // Calculate color based on normal
+                        float r = (normal.x + 1) / 2;
+                        float g = (normal.y + 1) / 2;
+                        float b = (normal.z + 1) / 2;
+
+                        // Accumulate color for this random ray
+                        colorAccumulator += new Vec3(r, g, b);
+                    }
+                    else
+                    {
+                        // No intersection, continue with your existing logic
+                        var (r, g, b) = ComputeBlueShadeInY(ray);
+                        colorAccumulator += new Vec3(r, g, b);
+                    }
+                }
 
                 int index = (j * tx + i) * 4; // Calculate the correct index in the byte array
 
-                // Check for intersection with the sphere
-                float t;
-                Vec3 normal;
-                HitRecord hit;
-                if (scene.Intersect(ray, 0.0f, 9999.0f, out hit))
-                {
-                    normal = hit.Normal;
-                    // Calculate color based on normal
-                    float r = (normal.x + 1) / 2;
-                    float g = (normal.y + 1) / 2;
-                    float b = (normal.z + 1) / 2;
+                // Average the color by dividing the accumulated color by the number of samples
+                Vec3 finalColor = colorAccumulator / (float)numSamples;
 
-                    // Set color to the pixel
-                    renderer.Pix[index] = (byte)(r * 255);
-                    renderer.Pix[index + 1] = (byte)(g * 255);
-                    renderer.Pix[index + 2] = (byte)(b * 255);
-                    renderer.Pix[index + 3] = 255; // Alpha component
-                }
-                else
-                {
-                    // No intersection, continue with your existing logic
-                    var (r, g, b) = ComputeBlueShadeInY(ray);
-                    renderer.Pix[index] = (byte)(r * 255);
-                    renderer.Pix[index + 1] = (byte)(g * 255);
-                    renderer.Pix[index + 2] = (byte)(b * 255);
-                    renderer.Pix[index + 3] = 255;
-                }
+                // Set color to the pixel
+                renderer.Pix[index] = (byte)(finalColor.x * 255);
+                renderer.Pix[index + 1] = (byte)(finalColor.y * 255);
+                renderer.Pix[index + 2] = (byte)(finalColor.z * 255);
+                renderer.Pix[index + 3] = 255;
             }
         }
 
         renderer.Run();
     }
+
 }
 

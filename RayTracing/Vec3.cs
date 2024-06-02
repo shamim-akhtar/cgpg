@@ -137,5 +137,7 @@ namespace CGPG
         {
             return new Vec3(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z);
         }
+        public static Vec3 operator /(Vec3 a, float b) => new Vec3(a.x / b, a.y / b, a.z / b);
+
     }
 }
