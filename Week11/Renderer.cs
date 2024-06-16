@@ -74,17 +74,17 @@ namespace CGPG
             texture.Use(TextureUnit.Texture0); // Bind the texture
             GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, pixelData);
         }
-        public static byte[] GeneratePixelData(int width, int height)
-        {
-            byte[] pixels = new byte[width * height * 4];
-            for (int i = 0; i < pixels.Length; i += 4)
-            {
-                pixels[i] = 255;     // R
-                pixels[i + 1] = 0;   // G
-                pixels[i + 2] = 255;   // B
-                pixels[i + 3] = 255; // A
-            }
-            return pixels;
-        }
+        //public static byte[] GeneratePixelData(int width, int height)
+        //{
+        //    byte[] pixels = new byte[width * height * 4];
+        //    for (int i = 0; i < pixels.Length; i += 4)
+        //    {
+        //        pixels[i] = 255;     // R
+        //        pixels[i + 1] = 0;   // G
+        //        pixels[i + 2] = 255;   // B
+        //        pixels[i + 3] = 255; // A
+        //    }
+        //    return pixels;
+        //}
     }
 }

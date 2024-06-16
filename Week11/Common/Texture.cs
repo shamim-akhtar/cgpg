@@ -11,6 +11,40 @@ namespace CGPG
         public int Width;
         public int Height;
 
+        public static Texture CreatTextureFromRawData(int width, int height, byte[] rawData)
+        {
+            // Generate handle
+            int handle = GL.GenTexture();
+
+            // Bind the handle
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.BindTexture(TextureTarget.Texture2D, handle);
+
+            //// Create an array to hold the pixel data (RGBA)
+            //byte[] redData = new byte[width * height * 4];
+            //for (int i = 0; i < redData.Length; i += 4)
+            //{
+            //    redData[i] = 255;     // R
+            //    redData[i + 1] = 0;   // G
+            //    redData[i + 2] = 0;   // B
+            //    redData[i + 3] = 255; // A
+            //}
+
+            // Upload the pixel data to the bound texture
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, rawData);
+
+            // Set texture parameters
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+
+            // Generate mipmaps
+            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+
+            return new Texture(handle) { Width = width, Height = height };
+        }
+
         public static Texture CreateEmptyRedTexture(int width, int height)
         {
             // Generate handle
