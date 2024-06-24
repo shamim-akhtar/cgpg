@@ -162,5 +162,14 @@ namespace CGPG
             GL.ActiveTexture(unit);
             GL.BindTexture(TextureTarget.Texture2D, Handle);
         }
+
+        // Method to get raw pixel data from the texture
+        public byte[] GetRawData()
+        {
+            GL.BindTexture(TextureTarget.Texture2D, Handle);
+            byte[] data = new byte[Width * Height * 4];
+            GL.GetTexImage(TextureTarget.Texture2D, 0, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+            return data;
+        }
     }
 }
