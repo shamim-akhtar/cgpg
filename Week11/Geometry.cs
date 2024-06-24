@@ -60,14 +60,14 @@ namespace CGPG
             return _texture;
         }
 
-        public void SetRawImage(byte[] data, int width, int height, TextureUnit unit = TextureUnit.Texture0)
+        public void SetTexture(byte[] data, int width, int height, TextureUnit unit = TextureUnit.Texture0)
         {
             Texture texture = Texture.CreatTextureFromRawData(width, height, data);
             SetTexture(texture, unit);
         }
 
         // For image manipulations in a texture.
-        public void UpdateTextureData(byte[] pixelData, int width, int height)
+        public void UpdateTexture(byte[] pixelData, int width, int height)
         {
             _texture.Use(TextureUnit.Texture0); // Bind the texture
             GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, pixelData);
@@ -182,10 +182,6 @@ namespace CGPG
 
         public void Dispose()
         {
-            //// Delete buffers and array to free up resources
-            //GL.DeleteBuffer(_elementBufferObject);
-            //GL.DeleteBuffer(_vertexBufferObject);
-            //GL.DeleteVertexArray(_vertexArrayObject);
         }
     }
 }
