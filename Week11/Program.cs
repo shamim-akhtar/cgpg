@@ -21,7 +21,9 @@ namespace Week11
                 Flags = ContextFlags.ForwardCompatible,
             };
 
-            var renderer = new Renderer(GameWindowSettings.Default, nativeWindowSettings);
+            var renderer = new Renderer(
+                GameWindowSettings.Default, 
+                nativeWindowSettings);
 
             //--------------------------------------------------------//
             // The original image.
@@ -59,6 +61,44 @@ namespace Week11
             FrameEventArgs e, 
             KeyboardState keyboard)
         {
+            int width = quad1.GetTexture().Width;
+            int height = quad1.GetTexture().Height;
+            byte[] original_data = quad1.GetTexture().GetRawData();
+            byte[] changing_data = quad2.GetTexture().GetRawData();
+            //if (keyboard.IsKeyPressed(Keys.R))
+            //{
+            //    // Set a red colour to the changing data and set it to quad2.
+            //    byte[] data = ImageUtils.SetRedColor(
+            //        changing_data, 
+            //        width, 
+            //        height);
+            //    quad2.SetTexture(data, width, height);
+            //}
+
+            if (keyboard.IsKeyPressed(Keys.R))
+            {
+                // Set a red colour to the changing data and set it to quad2.
+                byte[] data = ImageUtils.SwapRedWithGreen(
+                    changing_data,
+                    width,
+                    height);
+                quad2.SetTexture(data, width, height);
+            }
+
+            if (keyboard.IsKeyPressed(Keys.Q))
+            {
+                // Set a red colour to the changing data and set it to quad2.
+                byte[] data = ImageUtils.Negate(
+                    changing_data,
+                    width,
+                    height);
+                quad2.SetTexture(data, width, height);
+            }
+            if (keyboard.IsKeyPressed(Keys.Space))
+            {
+                quad2.SetTexture(original_data, width, height);
+            }
+                
         }
     }
 }
