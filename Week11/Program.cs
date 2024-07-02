@@ -162,7 +162,9 @@ namespace Week11
             else if (keyboard.IsKeyPressed(Keys.B))
             {
                 byte[] originalData = quad.GetTexture().GetRawData();
-                byte[] newData = ImageUtils.ApplyBoxBlur(
+                //byte[] newData = ImageUtils.ApplyBoxBlur(
+                //    originalData, IMAGE_X, IMAGE_Y);
+                byte[] newData = ImageUtils.FlipImageHorizontally(
                     originalData, IMAGE_X, IMAGE_Y);
                 quad.UpdateTextureData(newData, IMAGE_X, IMAGE_Y);
             }
